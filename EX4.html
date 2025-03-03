@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Blog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <h1 class="text-center">Mini Blog</h1>
+
+    <div class="card p-4 shadow-sm">
+        <h2 class="mb-3">Ajouter un Post</h2>
+        <form id="postForm">
+            <div class="mb-3">
+                <label for="titre" class="form-label">Titre</label>
+                <input type="text" id="titre" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="contenu" class="form-label">Contenu</label>
+                <textarea id="contenu" class="form-control" rows="3" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="auteur" class="form-label">Auteur</label>
+                <input type="text" id="auteur" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Ajouter Post</button>
+        </form>
+    </div>
+
+    <h2 class="mt-5">Liste des Posts</h2>
+    <div id="postsContainer" class="mt-3 mb-5"></div>
+</div>
+
+<script>
+class Post {
+    constructor(titre, contenu, auteur) {
+        this.titre = titre;
+        this.contenu = contenu;
+        this.auteur = auteur;
+        this.date = new Date().toLocaleString();
+    }
+}
+
+class Blog {
+    constructor() {
+        this.posts = JSON.parse(localStorage.getItem("posts")) || [];
+    }
+    ajouterPost(post) {
+        this.posts.push(post);
+        this.sauvegarderJSON();
+    }
+    listerPosts() {
+        return this.posts;
+    }
+    supprimerPost(index) {
+        this.posts.splice(index, 1);
+        this.sauvegarderJSON();
+    }
+    sauvegarderJSON() {
+        localStorage.setItem("posts", JSON.stringify(this.posts));
+    }
+}
+
+const blog = new Blog();
+const postForm = document.getElementById("postForm");
+const postsContainer = document.getElementById("postsContainer");
+
+function afficherPosts() {
+    postsContainer.innerHTML = "";
+    blog.listerPosts().forEach((post, index) => {
+        const postElement = document.createElement("div");
+        postElement.classList.add("card", "mt-3", "shadow-sm");
+        postElement.innerHTML = `
+            <div class="card-body">
+                <h5 class="card-title">${post.titre}</h5>
+                <p class="card-text">${post.contenu}</p>
+                <p class="text-muted">Par: ${post.auteur} | ${post.date}</p>
+                <button class="btn btn-danger btn-sm" onclick="supprimerPost(${index})">Supprimer</button>
+            </div>
+        `;
+        postsContainer.appendChild(postElement);
+    });
+}
+
+postForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const titre = document.getElementById("titre").value;
+    const contenu = document.getElementById("contenu").value;
+    const auteur = document.getElementById("auteur").value;
+    
+    if (titre && contenu && auteur) {
+        const newPost = new Post(titre, contenu, auteur);
+        blog.ajouterPost(newPost);
+        postForm.reset();
+        afficherPosts();
+    }
+});
+
+window.supprimerPost = (index) => {
+    blog.supprimerPost(index);
+    afficherPosts();
+};
+
+document.addEventListener("DOMContentLoaded", afficherPosts);
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
